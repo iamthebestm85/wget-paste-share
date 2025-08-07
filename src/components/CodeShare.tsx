@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, Download, Terminal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const CodeShare = () => {
   const [code, setCode] = useState("");
@@ -13,7 +14,7 @@ const CodeShare = () => {
   const [wgetCommand, setWgetCommand] = useState("");
   const { toast } = useToast();
 
-  const generateLink = () => {
+  const generateLink = async () => {
     if (!code.trim()) {
       toast({
         title: "Error",
@@ -23,20 +24,46 @@ const CodeShare = () => {
       return;
     }
 
-    // Generate a mock ID and link
-    const id = Math.random().toString(36).substring(2, 15);
-    const baseUrl = window.location.origin;
-    const link = `${baseUrl}/share/${id}`;
-    const name = filename.trim() || "shared-code";
-    const wget = `wget "${link}" -O "${name}.txt"`;
+    try {
+      // Generate a unique ID
+      const id = crypto.randomUUID();
+      const name = filename.trim() || "shared-code";
+      
+      // Save code to Supabase
+      const { error } = await supabase
+        .from('code_shares')
+        .insert([
+          {
+            id: id,
+            code: code,
+            filename: name
+          }
+        ]);
 
-    setGeneratedLink(link);
-    setWgetCommand(wget);
+      if (error) {
+        throw error;
+      }
 
-    toast({
-      title: "Link generated!",
-      description: "Your code is ready to share",
-    });
+      // Generate links
+      const baseUrl = window.location.origin;
+      const shareLink = `${baseUrl}/share/${id}`;
+      const rawLink = `${baseUrl}/raw/${id}`;
+      const wget = `wget "${rawLink}" -O "${name}.txt"`;
+
+      setGeneratedLink(shareLink);
+      setWgetCommand(wget);
+
+      toast({
+        title: "Link generated!",
+        description: "Your code is ready to share",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate link. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const copyToClipboard = (text: string, type: string) => {
