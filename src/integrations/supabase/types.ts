@@ -14,7 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      code_shares: {
+        Row: {
+          code: string
+          created_at: string
+          filename: string
+          id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          filename: string
+          id?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          filename?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

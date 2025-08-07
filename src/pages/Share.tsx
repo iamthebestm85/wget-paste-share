@@ -24,13 +24,15 @@ const Share = () => {
           .from('code_shares')
           .select('*')
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           setError('Code not found');
-        } else {
+        } else if (data) {
           setCode(data.code);
           setFilename(data.filename);
+        } else {
+          setError('Code not found');
         }
       } catch (err) {
         setError('Failed to load code');

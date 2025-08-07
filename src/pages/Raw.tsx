@@ -19,12 +19,14 @@ const Raw = () => {
           .from('code_shares')
           .select('code')
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           setCode('Code not found');
-        } else {
+        } else if (data) {
           setCode(data.code);
+        } else {
+          setCode('Code not found');
         }
       } catch (err) {
         setCode('Failed to load code');
